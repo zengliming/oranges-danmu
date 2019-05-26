@@ -1,19 +1,16 @@
 package cn.zlmthy.danmu.server.sync;
 
-import cn.zlmthy.danmu.server.sync.handle.ClientHandler;
-import cn.zlmthy.danmu.server.sync.handle.ServerHandler;
+import cn.zlmthy.danmu.server.sync.handle.SyncClientHandler;
+import cn.zlmthy.danmu.server.sync.handle.SyncClientInitializer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.CharsetUtil;
 import lombok.extern.log4j.Log4j2;
 
 /**
@@ -24,31 +21,45 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SyncClient {
 
+    private static Bootstrap bootstrap;
+
+    private static ChannelFuture channelFuture;
+
     private static Channel channel;
 
-    public static void run(final int port) {
-        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+    private static int serverPort;
 
-        Bootstrap bootstrap = new Bootstrap();
+    private static int reTriedTime = 0;
+
+    private static int reTryTime = 16;
+
+    private static int reTryStep = 1;
+
+    private static long lastRetryTime = 0;
+
+    public static void run(final int port) {
+
+        serverPort = port;
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+
+        bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-                        //数据分包，组包，粘包
-                        pipeline.addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE,0,4,0,4));
-                        pipeline.addLast(new LengthFieldPrepender(4));
-
-                        pipeline.addLast(new StringDecoder(CharsetUtil.UTF_8));
-                        pipeline.addLast(new StringEncoder(CharsetUtil.UTF_8));
-                        pipeline.addLast(new ClientHandler());
-                    }
-                });
+                .handler(new SyncClientInitializer());
 
         try {
-            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1",port).sync();
+            channelFuture = bootstrap.connect("127.0.0.1",serverPort).sync();
+            log.info("链接到同步服务器");
             channel = channelFuture.channel();
+//            reTriedTime = 0;
+//            lastRetryTime = System.currentTimeMillis() / 1000;
+//            reTryStep = 10;
+//            reTriedTime++;
+//            reTryStep = 2 * reTryStep;
+//            IThreadPool.execute(reConnect);
+            for (int i=0;i<10;i++){
+                channel.writeAndFlush("reg");
+            }
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
             log.error(e);
@@ -59,7 +70,31 @@ public class SyncClient {
     }
 
     public static void sendMessage(String message){
-        log.info("像同步服务器推送消息");
+        log.info("向同步服务器推送消息");
         channel.writeAndFlush(message);
     }
+
+    private static Runnable reConnect = ()->{
+        log.info("开启断线重连线程");
+        while (true) {
+            if (reTriedTime >= reTryTime){
+                log.info("超过重试次数");
+                Thread.currentThread().interrupt();
+            }
+            if (!channel.isActive()){
+                if (System.currentTimeMillis()/1000 - lastRetryTime >= reTryStep){
+                    log.info("短线重连中");
+                    try {
+                        channelFuture = bootstrap.connect("127.0.0.1",serverPort).sync();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    }
+                    log.info("链接到同步服务器");
+                    channel = channelFuture.channel();
+                }
+            }
+        }
+    };
+
 }

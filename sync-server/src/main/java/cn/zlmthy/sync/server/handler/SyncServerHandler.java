@@ -16,12 +16,12 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SyncServerHandler extends SimpleChannelInboundHandler<String> {
 
-    public static final ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    public static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         Channel channel = ctx.channel();
-        String user = channel.remoteAddress().toString();
         log.info("收到推送[{}]", msg);
+        String user = channel.remoteAddress().toString();
         channelGroup.forEach(ch->{
             if(ch == channel){
                 ch.writeAndFlush("[myself]:"+msg+"\n");
@@ -32,15 +32,14 @@ public class SyncServerHandler extends SimpleChannelInboundHandler<String> {
     }
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+        log.info("发生异常{}", cause.getMessage());
         ctx.close();
     }
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
-        channelGroup.forEach(ch -> {
-            ch.writeAndFlush("用户[" + channel.remoteAddress() + "]加入，当前在线"+(channelGroup.size()+1)+"人\n");
-        });
+        channel.writeAndFlush("[server]: welcome");
+        log.info("用户[" + channel.remoteAddress() + "]加入，当前在线"+(channelGroup.size()+1)+"人");
         channelGroup.add(channel);
     }
     @Override

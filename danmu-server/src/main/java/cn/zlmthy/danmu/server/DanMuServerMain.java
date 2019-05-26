@@ -4,7 +4,6 @@ import cn.zlmthy.danmu.server.config.NettyConfig;
 import cn.zlmthy.danmu.server.handle.HttpRequestHandler;
 import cn.zlmthy.danmu.server.handle.WebSocketServerHandler;
 import cn.zlmthy.danmu.server.sync.SyncClient;
-import cn.zlmthy.danmu.server.sync.SyncServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -70,7 +69,7 @@ public class DanMuServerMain {
                 pipeline.addLast( new HttpRequestHandler());
                 //用于处理websocket, /ws为访问websocket时的uri
                 pipeline.addLast(new WebSocketServerProtocolHandler(NettyConfig.SOCKET_URI));
-                pipeline.addLast(new IdleStateHandler(60,60,30, TimeUnit.SECONDS));
+                pipeline.addLast(new IdleStateHandler(120,120,120, TimeUnit.SECONDS));
 
                 pipeline.addLast( new WebSocketServerHandler());
             }
