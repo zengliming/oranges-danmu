@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.Output;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -18,7 +19,7 @@ public class KryoSerializer {
 
     private static final ThreadLocalKryoFactory FACTORY = new ThreadLocalKryoFactory();
 
-    public static void serialize(Object object, ByteBuf out) {
+    public static byte[] serialize(Object object) {
         Kryo kryo = FACTORY.getKryo();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Output output = new Output(baos);
@@ -33,7 +34,11 @@ public class KryoSerializer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        out.writeBytes(b);
+        return b;
+    }
+
+    public static void serialize(Object object, ByteBuf out) {
+        out.writeBytes(serialize(object));
     }
 
     public static Object deserialize(ByteBuf out) {
@@ -41,6 +46,15 @@ public class KryoSerializer {
             return null;
         }
         Input input = new Input(new ByteBufInputStream(out));
+        Kryo kryo = FACTORY.getKryo();
+        return kryo.readClassAndObject(input);
+    }
+
+    public static Object deserialize(byte[] out) {
+        if (out == null) {
+            return null;
+        }
+        Input input = new Input(new ByteArrayInputStream(out));
         Kryo kryo = FACTORY.getKryo();
         return kryo.readClassAndObject(input);
     }

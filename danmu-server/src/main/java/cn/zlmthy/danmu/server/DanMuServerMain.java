@@ -78,7 +78,11 @@ public class DanMuServerMain {
         try {
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
             log.info("damu server start in port {}", port);
-            SyncClient.run(Integer.parseInt(cmdArgs.get("syncPort")));
+            try {
+                SyncClient.run(Integer.parseInt(cmdArgs.get("syncPort")));
+            }catch (Exception e){
+                log.error(e);
+            }
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             log.error(e);

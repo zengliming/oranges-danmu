@@ -1,5 +1,6 @@
 package cn.zlmthy.danmu.server.handle;
 
+import cn.zlmthy.danmu.commons.dto.SyncMessage;
 import cn.zlmthy.danmu.server.config.NettyConfig;
 import cn.zlmthy.danmu.server.sync.SyncClient;
 import io.netty.channel.*;
@@ -44,7 +45,9 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
         //获取客户端向服务端发送的消息
         String request = ((TextWebSocketFrame) msg).text();
         log.info("服务端收到客户端的消息====>>>" + request);
-        SyncClient.sendMessage(request);
+        SyncMessage syncMessage = new SyncMessage();
+        syncMessage.setMessage(request);
+        SyncClient.sendSyncMessage(syncMessage);
         TextWebSocketFrame tws = new TextWebSocketFrame(new Date().toString()                                                                               + ctx.channel().id()    + " ===>>> " + request);
         //服务端向每个连接上来的客户端群发消息
         NettyConfig.channelGroup.writeAndFlush(tws);

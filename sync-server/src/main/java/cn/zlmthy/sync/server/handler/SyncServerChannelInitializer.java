@@ -8,6 +8,7 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
@@ -16,9 +17,9 @@ import io.netty.handler.codec.string.StringEncoder;
  * @date 2019/5/26
  * @since 1.0.0
  */
-public class SyncServerChannelInitializer extends ChannelInitializer<Channel> {
+public class SyncServerChannelInitializer extends ChannelInitializer<SocketChannel> {
     @Override
-    protected void initChannel(Channel socketChannel) throws Exception {
+    protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("decoder", new KryoDecoder());
         pipeline.addLast("encoder", new KryoEncoder());

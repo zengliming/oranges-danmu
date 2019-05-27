@@ -9,9 +9,9 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>danmu-commons</module>
         <module>danmu-server</module>
         <module>sync-server</module>
-        <module>danmu-commons</module>
     </modules>
 
     <name>oranges-danmu</name>
@@ -35,6 +35,11 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.zlmthy</groupId>
+                <artifactId>danmu-commons</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

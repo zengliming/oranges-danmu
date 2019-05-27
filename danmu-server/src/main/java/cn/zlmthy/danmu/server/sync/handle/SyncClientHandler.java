@@ -1,5 +1,7 @@
 package cn.zlmthy.danmu.server.sync.handle;
 
+import cn.zlmthy.danmu.commons.dto.SyncMessage;
+import cn.zlmthy.danmu.server.config.NettyConfig;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.log4j.Log4j2;
@@ -12,14 +14,14 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Log4j2
-public class SyncClientHandler extends SimpleChannelInboundHandler<String> {
+public class SyncClientHandler extends SimpleChannelInboundHandler<SyncMessage> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, SyncMessage msg) throws Exception {
 
         log.info("客户端接收到的消息： {}",msg);
 
-        ctx.writeAndFlush(LocalDateTime.now());
+        NettyConfig.groupSend(msg.getMessage());
 
         //完成通信后关闭连接
         //ctx.close();

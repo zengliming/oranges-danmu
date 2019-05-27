@@ -1,5 +1,6 @@
 package cn.zlmthy.danmu.server.sync;
 
+import cn.zlmthy.danmu.commons.dto.SyncMessage;
 import cn.zlmthy.danmu.server.sync.handle.SyncClientHandler;
 import cn.zlmthy.danmu.server.sync.handle.SyncClientInitializer;
 import io.netty.bootstrap.Bootstrap;
@@ -57,9 +58,6 @@ public class SyncClient {
 //            reTriedTime++;
 //            reTryStep = 2 * reTryStep;
 //            IThreadPool.execute(reConnect);
-            for (int i=0;i<10;i++){
-                channel.writeAndFlush("reg");
-            }
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
             log.error(e);
@@ -69,7 +67,7 @@ public class SyncClient {
         }
     }
 
-    public static void sendMessage(String message){
+    public static void sendSyncMessage(SyncMessage message){
         log.info("向同步服务器推送消息");
         channel.writeAndFlush(message);
     }
