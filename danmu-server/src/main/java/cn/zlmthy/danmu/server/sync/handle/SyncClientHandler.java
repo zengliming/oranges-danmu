@@ -29,6 +29,8 @@ public class SyncClientHandler extends SimpleChannelInboundHandler<SyncMessage> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+
+        log.info("与同步服务断开连接");
     }
 
     @Override
