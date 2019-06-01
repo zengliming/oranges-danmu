@@ -1,7 +1,7 @@
 <!-- status为不记录log4j本身的日志 -->
 <configuration status="OFF">
     <properties>
-        <property name="LOG_HOME">./logs</property>
+        <property name="LOG_HOME">{ctx:logOutDir}</property>
         <property name="FILE_NAME">app</property>
     </properties>
     <appenders>
@@ -10,12 +10,12 @@
             <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
         </Console>
-        <File name="Error" fileName="${LOG_HOME}/error.log">
+        <File name="Error" fileName="../logs/error.log">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
         </File>
-        <RollingFile name="RollingFile" fileName="${LOG_HOME}/${FILE_NAME}.log"
-                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{MM-dd-yyyy}-%i.log.gz">
+        <RollingFile name="RollingFile" fileName="../logs/${FILE_NAME}.log"
+                     filePattern="../logs/$${date:yyyy-MM}/${FILE_NAME}-%d{MM-dd-yyyy}-%i.log.gz">
             <PatternLayout pattern="%d{yyyy-MM-dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>

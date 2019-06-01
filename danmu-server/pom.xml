@@ -51,7 +51,7 @@
                             <!--指定main入口-->
                             <mainClass>cn.zlmthy.danmu.server.DanMuServerMain</mainClass>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
+                            <classpathPrefix>./</classpathPrefix>
                         </manifest>
                     </archive>
                 </configuration>

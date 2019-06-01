@@ -18,7 +18,13 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.lookup.MainMapLookup;
+import org.slf4j.MDC;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -35,15 +41,30 @@ public class DanMuServerMain {
     public static void main(String[] args) {
         Map<String, String> cmdArgs = new HashMap<>();
         cmdArgs.put("port", "8080");
+        cmdArgs.put("logPath", "../config/log4j2.xml");
         cmdArgs.put("syncPort", "9090");
-        if (args.length >0){
-            for (String arg : args){
+        cmdArgs.put("logOutDir", "../logs");
+        if (args.length > 0) {
+            for (String arg : args) {
                 String[] strings = arg.split("=");
-                if (strings.length == 2){
+                if (strings.length == 2) {
                     cmdArgs.put(strings[0], strings[1]);
                 }
             }
         }
+        MDC.put("logOutDir",cmdArgs.get("logOutDir"));
+        String logPath = cmdArgs.get("logPath");
+        System.setProperty("logOutDir",cmdArgs.get("logOutDir"));
+        ConfigurationSource source;
+        try {
+            source = new ConfigurationSource(new FileInputStream(logPath));
+            Configurator.initialize(null, source);
+            log.info("加载配置文件[{}]", logPath);
+            log.info("日志输出目录[{}]", cmdArgs.get("logOutDir"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         final int port = Integer.parseInt(cmdArgs.get("port"));
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -54,40 +75,40 @@ public class DanMuServerMain {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
 
-            @Override
-            protected void initChannel(SocketChannel socketChannel) throws Exception {
-                ChannelPipeline pipeline = socketChannel.pipeline();
-                //HttpServerCodec: 针对http协议进行编解码
-                pipeline.addLast(new HttpServerCodec());
-                //ChunkedWriteHandler分块写处理，文件过大会将内存撑爆
-                pipeline.addLast(new ChunkedWriteHandler());
-                /**
-                 * 作用是将一个Http的消息组装成一个完成的HttpRequest或者HttpResponse，那么具体的是什么
-                 * 取决于是请求还是响应, 该Handler必须放在HttpServerCodec后的后面
-                 */
-                pipeline.addLast(new HttpObjectAggregator(8192));
-                pipeline.addLast( new HttpRequestHandler());
-                //用于处理websocket, /ws为访问websocket时的uri
-                pipeline.addLast(new WebSocketServerProtocolHandler(NettyConfig.SOCKET_URI));
-                pipeline.addLast(new IdleStateHandler(120,120,120, TimeUnit.SECONDS));
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        ChannelPipeline pipeline = socketChannel.pipeline();
+                        //HttpServerCodec: 针对http协议进行编解码
+                        pipeline.addLast(new HttpServerCodec());
+                        //ChunkedWriteHandler分块写处理，文件过大会将内存撑爆
+                        pipeline.addLast(new ChunkedWriteHandler());
+                        /**
+                         * 作用是将一个Http的消息组装成一个完成的HttpRequest或者HttpResponse，那么具体的是什么
+                         * 取决于是请求还是响应, 该Handler必须放在HttpServerCodec后的后面
+                         */
+                        pipeline.addLast(new HttpObjectAggregator(8192));
+                        pipeline.addLast(new HttpRequestHandler());
+                        //用于处理websocket, /ws为访问websocket时的uri
+                        pipeline.addLast(new WebSocketServerProtocolHandler(NettyConfig.SOCKET_URI));
+                        pipeline.addLast(new IdleStateHandler(120, 120, 120, TimeUnit.SECONDS));
 
-                pipeline.addLast( new WebSocketServerHandler());
-            }
-        });
+                        pipeline.addLast(new WebSocketServerHandler());
+                    }
+                });
 
         try {
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
             log.info("damu server start in port {}", port);
             try {
                 SyncClient.run(Integer.parseInt(cmdArgs.get("syncPort")));
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e);
             }
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             log.error(e);
             Thread.currentThread().interrupt();
-        }finally {
+        } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }

@@ -5,7 +5,7 @@
     <id>dist</id>
     <formats>
         <format>tar.gz</format>
-        <format>zip</format>
+        <format>dir</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory> <!-- disable the creation of root's distribution dir in the archive -->
     <dependencySets>
@@ -35,12 +35,12 @@
                 <include>*.cmd</include>
             </includes>
             <fileMode>0755</fileMode>
-            <outputDirectory>/bin</outputDirectory>
+            <outputDirectory>/</outputDirectory>
         </fileSet>
         <!-- executable jar -->
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>/lib</outputDirectory>
             <includes>
                 <include>${project.artifactId}-${project.version}.jar</include>
             </includes>
