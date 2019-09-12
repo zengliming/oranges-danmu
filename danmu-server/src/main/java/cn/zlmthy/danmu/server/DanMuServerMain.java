@@ -40,8 +40,8 @@ public class DanMuServerMain {
 
     public static void main(String[] args) {
         Map<String, String> cmdArgs = new HashMap<>();
-        cmdArgs.put("port", "8080");
-        cmdArgs.put("logPath", "../config/log4j2.xml");
+        cmdArgs.put("port", "8081");
+        cmdArgs.put("logPath", "log4j2.xml");
         cmdArgs.put("syncPort", "9090");
         cmdArgs.put("logOutDir", "../logs");
         if (args.length > 0) {

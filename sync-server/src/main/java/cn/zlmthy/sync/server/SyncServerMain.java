@@ -11,8 +11,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +21,6 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Log4j2
-@SpringBootApplication
 public class SyncServerMain {
 
 
@@ -40,7 +37,6 @@ public class SyncServerMain {
         }
 
         final int port = Integer.parseInt(cmdArgs.get("port"));
-        SpringApplication.run(SyncServerMain.class, args);
         init(port);
     }
 

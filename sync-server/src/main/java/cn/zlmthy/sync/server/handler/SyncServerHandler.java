@@ -1,7 +1,6 @@
 package cn.zlmthy.sync.server.handler;
 
 import cn.zlmthy.danmu.commons.dto.SyncMessage;
-import cn.zlmthy.sync.server.util.SpringUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -9,10 +8,6 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-
-import javax.annotation.Resource;
 
 /**
  * @author zengliming
@@ -22,20 +17,13 @@ import javax.annotation.Resource;
 @Log4j2
 public class SyncServerHandler extends SimpleChannelInboundHandler<SyncMessage> {
 
-    private StringRedisTemplate stringRedisTemplate;
-
     private static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    public SyncServerHandler(){
-        stringRedisTemplate = SpringUtil.getBean(StringRedisTemplate.class);
-    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, SyncMessage msg) throws Exception {
         Channel channel = ctx.channel();
         log.info("收到弹幕服务推送[{}]", msg);
-        ZSetOperations<String, String> forZSet = stringRedisTemplate.opsForZSet();
-        forZSet.add("danmu_1001", msg.getMessage(), System.currentTimeMillis());
         channelGroup.forEach(ch->{
             if(ch != channel){
                 ch.writeAndFlush(msg);
